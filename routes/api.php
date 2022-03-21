@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Spiritix\Html2Pdf\Converter;
 use Spiritix\Html2Pdf\Input\StringInput;
 use Spiritix\Html2Pdf\Output\StringOutput;
@@ -41,7 +41,6 @@ NOTE By default, this library generates a pdf with modified colors for printing.
  */
 Route::any( 'html' , static function ( Request $request )
 {
-
     $input = new StringInput();
     $input->setHtml(
         '<!DOCTYPE html><html lang="es"><head><title></title></head>'
@@ -61,12 +60,10 @@ Route::any( 'html' , static function ( Request $request )
     /** @var StringOutput $output */
     $output = $converter->convert();
 
-    return response()->make(
-        $output->get() ,
-        Response::HTTP_OK ,
-        [
-            'Content-Type' => 'application/pdf' ,
-            'Content-Disposition' => 'attachment;filename="facturas.pdf"' ,
-        ]
-    );
+    $id = \Illuminate\Support\Str::random();
+    Storage::put( $id . '.pdf' , $output->get() );
+
+    return response()->json( compact( 'id' ) );
 } );
+
+Route::any( 'file/{id}' , static fn ( string $id ) => Storage::download( $id . '.pdf' ) );
