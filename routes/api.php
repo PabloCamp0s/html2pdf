@@ -1,10 +1,11 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
 use Spiritix\Html2Pdf\Converter;
 use Spiritix\Html2Pdf\Input\StringInput;
-use Spiritix\Html2Pdf\Output\DownloadOutput;
+use Spiritix\Html2Pdf\Output\StringOutput;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,7 +39,7 @@ Page styles are not visible inside templates.
 NOTE By default, this library generates a pdf with modified colors for printing. Use the -webkit-print-color-adjust property to force rendering of exact colors.
 
  */
-Route::post( 'html' , static function ( Request $request )
+Route::any( 'html' , static function ( Request $request )
 {
 
     $input = new StringInput();
@@ -48,7 +49,7 @@ Route::post( 'html' , static function ( Request $request )
         . '</html>'
     );
 
-    $converter = new Converter( $input , new DownloadOutput() );
+    $converter = new Converter( $input , new StringOutput() );
 
     $converter->setOptions( [
         'printBackground' => true ,
@@ -57,7 +58,15 @@ Route::post( 'html' , static function ( Request $request )
         'height'          => '297mm' ,
     ] );
 
+    /** @var StringOutput $output */
     $output = $converter->convert();
-    $output->download( $request->get( 'filename' ) . '.pdf' );
 
+    return response()->make(
+        $output->get() ,
+        Response::HTTP_OK ,
+        [
+            'Content-Type' => 'application/pdf' ,
+            'Content-Disposition' => 'inline' ,
+        ]
+    );
 } );
