@@ -66,7 +66,7 @@ Route::any( 'html' , static function ( Request $request )
         Response::HTTP_OK ,
         [
             'Content-Type' => 'application/pdf' ,
-            'Content-Disposition' => 'inline' ,
+            'Content-Disposition' => 'aattachment;filename="facturas.pdf"' ,
         ]
     );
 } );
